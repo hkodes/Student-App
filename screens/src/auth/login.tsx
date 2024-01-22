@@ -1,7 +1,6 @@
 import {
   ActivityIndicator,
   Image,
-  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,17 +10,27 @@ import {
   useColorScheme,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {RootParamList, commonStyles, height, showToast, tealColor, width} from './constant';
-import React, {useState} from 'react';
+import {
+  RootParamList,
+  commonStyles,
+  height,
+  showToast,
+  tealColor,
+  width,
+} from '../../constant';
+import React, {useEffect, useState} from 'react';
 import {
   CodeField,
   Cursor,
   useBlurOnFulfill,
 } from 'react-native-confirmation-code-field';
 import auth, {firebase} from '@react-native-firebase/auth';
-import FadeInView from './animations';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import FadeInView from '../../animations';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useUser} from '../../provider/user_provider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import firestore from '@react-native-firebase/firestore';
 
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState('+91');
@@ -31,19 +40,42 @@ const Login = () => {
   const [isOtpLoading, setisOtpLoading] = useState(false);
   const [verificationId, setverificationId] = useState<any>();
   const [isVerifying, setisVerifying] = useState(false);
-
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+  const {login} = useUser();
+
+  const checkExistingUser = async (uid: string) => {
+    const userDoc = await firestore().collection('test_users').doc(uid).get();
+    console.log(userDoc.data);
+    if (userDoc.exists) {
+      const userData = {
+        id: uid,
+        name: userDoc.data()?.name,
+        address: userDoc.data()?.address,
+        rollNo: userDoc.data()?.roll_number,
+        dob: userDoc.data()?.dob,
+        gender: userDoc.data()?.gender,
+        contact: phoneNumber,
+      };
+      AsyncStorage.setItem('user', JSON.stringify(userData));
+      login(userData);
+
+      setisVerifying(false);
+      console.log('exists');
+      navigation.navigate('Dashboard');
+    } else {
+      setisVerifying(false);
+      navigation.navigate('Register', {number: phoneNumber, uid: uid});
+    }
+  };
 
   const sendOtp = async () => {
-
     if (phoneNumber.length == 13) {
-
       setisOtpLoading(true);
       try {
         const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
         setisOtpLoading(false);
         setisOtpSent(true);
-
+        showToast(`OTP sent to ${phoneNumber}`);
         setverificationId(confirmation.verificationId);
       } catch (err) {
         console.log(err);
@@ -56,7 +88,7 @@ const Login = () => {
   };
 
   const verifyOtp = async () => {
-    showToast("Verifying OTP");
+    showToast('Verifying OTP');
     if (value.length == 6) {
       try {
         setisVerifying(true);
@@ -65,13 +97,8 @@ const Login = () => {
           value,
         );
         const userCredential = await auth().signInWithCredential(credential);
-        setisVerifying(false);
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Home' }],
-          });
-        // const user = userCredential.user;
-        // console.log(user);
+
+        checkExistingUser(userCredential.user.uid);
       } catch (err) {
         setisVerifying(false);
         showToast('Something went wrong');
@@ -117,7 +144,7 @@ const Login = () => {
           <Text
             style={{
               alignSelf: 'center',
-              color: "grey",
+              color: 'grey',
               fontSize: 16,
               marginTop: 10,
             }}>
@@ -137,7 +164,9 @@ const Login = () => {
               </Text>
             )}
           />
-          <Text style={styles.resendText}>Resend</Text>
+          <Text onPress={sendOtp} style={styles.resendText}>
+            Resend
+          </Text>
           {isVerifying ? (
             <ActivityIndicator
               style={{marginTop: 20}}
@@ -145,7 +174,9 @@ const Login = () => {
               color={tealColor}
             />
           ) : (
-            <TouchableOpacity onPress={verifyOtp} style={styles.continueBtn}>
+            <TouchableOpacity
+              onPress={verifyOtp}
+              style={commonStyles.continueBtn}>
               <View>
                 <Text style={{color: Colors.white, fontSize: 17}}>
                   Continue
@@ -157,7 +188,7 @@ const Login = () => {
       ) : null}
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   educationTxt: {
@@ -165,11 +196,11 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     letterSpacing: 1,
     fontSize: 23,
-    color: "black",
+    color: 'black',
   },
   studentAppTxt: {
     alignSelf: 'center',
-    color: "grey",
+    color: 'grey',
     fontSize: 18,
     paddingTop: 5,
     paddingLeft: 20,
@@ -209,20 +240,9 @@ const styles = StyleSheet.create({
     color: '#4169E1',
     fontSize: 17,
   },
-
-  continueBtn: {
-    marginTop: 20,
-    alignSelf: 'center',
-    paddingHorizontal: '20%',
-    backgroundColor: '#008080',
-    padding: 8,
-    borderRadius: 5,
-  },
 });
 
 function SplashImage(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
   return (
     <View
       style={{
@@ -237,7 +257,7 @@ function SplashImage(): React.JSX.Element {
           marginBottom: 15,
           resizeMode: 'contain',
         }}
-        source={require('../assets/logo.png')}
+        source={require('../../../assets/logo.png')}
       />
     </View>
   );

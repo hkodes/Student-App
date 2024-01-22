@@ -1,10 +1,7 @@
-import {
-  Dimensions,
-  StyleSheet,
-} from 'react-native';
+import {Dimensions, StyleSheet} from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import Toast from 'react-native-simple-toast';
-import { ParamListBase } from '@react-navigation/native';
+import {ParamListBase} from '@react-navigation/native';
 
 export function width(percentage: number) {
   const value = (percentage * Dimensions.get('window').width) / 100;
@@ -20,7 +17,7 @@ export const commonStyles = StyleSheet.create({
   lableText: {
     letterSpacing: 1,
     fontSize: 15,
-    color: "grey",
+    color: 'grey',
   },
 
   inputText: {
@@ -31,6 +28,15 @@ export const commonStyles = StyleSheet.create({
     borderWidth: 1.6,
     borderRadius: 5,
     paddingHorizontal: 10,
+  },
+
+  continueBtn: {
+    marginTop: 20,
+    alignSelf: 'center',
+    paddingHorizontal: '20%',
+    backgroundColor: '#008080',
+    padding: 8,
+    borderRadius: 5,
   },
 });
 
@@ -51,9 +57,8 @@ export function showToast(message: string) {
 
 export const tealColor = '#008080';
 
-
 export interface RootParamList extends ParamListBase {
   Login: undefined;
   Dashboard: undefined;
-  RegisterUser: {fcmToken: string};
+  RegisterUser: {number: string; uid: string};
 }
