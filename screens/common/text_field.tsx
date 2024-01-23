@@ -1,33 +1,43 @@
 import React from 'react';
-import {Text, TextInput} from 'react-native';
-import PropTypes from 'prop-types';
+import {KeyboardTypeOptions, Text, TextInput} from 'react-native';
 import {commonStyles} from '../constant';
 
 interface TextInputsProps {
   label: string;
   hintText: string;
   text: string;
-  keyboardType?: string | null;
+  keyboardType?: KeyboardTypeOptions | null;
   setText: (text: string) => void;
+  setBool?: (bool: boolean) => void;
+  maxLength?: number;
 }
-
 const TextInputs: React.FC<TextInputsProps> = ({
   label,
   hintText,
   text,
   setText,
   keyboardType,
+  setBool,
+  maxLength,
 }) => {
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+    if (setBool) {
+      setBool(true);
+    }
+  };
+
   return (
     <>
       <Text style={[commonStyles.lableText, {marginTop: '5%'}]}>{label}</Text>
       <TextInput
         style={commonStyles.inputText}
-        onChangeText={text => setText(text)}
+        onChangeText={handleTextChange}
         value={text}
         placeholder={hintText}
-        keyboardType={(keyboardType as any) || 'numeric'}
-        maxLength={13}
+        placeholderTextColor="grey"
+        keyboardType={keyboardType || 'email-address'}
+        maxLength={maxLength || undefined}
       />
     </>
   );

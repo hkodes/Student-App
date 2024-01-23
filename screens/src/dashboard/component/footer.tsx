@@ -6,11 +6,13 @@ import {DrawerNavigationProp} from '@react-navigation/drawer';
 import auth from '@react-native-firebase/auth';
 import {DrawerParamList} from './header';
 import {height} from '../../../constant';
+import {useUser} from '../../../provider/user_provider';
 
 type NavigationProp = DrawerNavigationProp<DrawerParamList>;
 
 const FooterComponent = () => {
   const navigation = useNavigation<NavigationProp>();
+  const {logout} = useUser();
 
   const handleSignOut = async () => {
     Alert.alert('Logout Confirmation', 'Are you sure you want to logout?', [
@@ -23,6 +25,7 @@ const FooterComponent = () => {
       {
         text: 'Yes',
         onPress: () => {
+        logout();
           auth().signOut();
           navigation.reset({
             index: 0,

@@ -6,6 +6,19 @@ import DeviceInfo from 'react-native-device-info';
 import {getLocation} from './location';
 import {showToast} from '../constant';
 
+export const createNotification = async (
+  uid: string,
+  title: string,
+  body: string,
+) => {
+  await firestore().collection('test_notification').add({
+    userId: uid,
+    title: title,
+    message: body,
+    timestamp: firestore.Timestamp.now(),
+  });
+};
+
 export const createNewUser = async (
   uid: string,
   phoneNumber: string,
@@ -14,6 +27,7 @@ export const createNewUser = async (
   dob: string,
   gender: string,
   address: string,
+  photoUrl?: string,
 ) => {
   const fcmToken = await messaging().getToken();
 
@@ -44,5 +58,6 @@ export const createNewUser = async (
     longitude: location.coords.longitude,
     courses: [],
     notifications: [],
+    photoUrl: photoUrl,
   });
 };

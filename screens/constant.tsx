@@ -22,6 +22,7 @@ export const commonStyles = StyleSheet.create({
 
   inputText: {
     color: 'black',
+
     marginTop: 5,
     height: height(5.5),
     borderColor: '#ccc',
@@ -37,6 +38,22 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: '#008080',
     padding: 8,
     borderRadius: 5,
+  },
+
+  educationTxt: {
+    fontWeight: '800',
+    alignSelf: 'center',
+    letterSpacing: 1,
+    fontSize: 23,
+    color: '#008080',
+    marginTop: height(1.5),
+  },
+  underline: {
+    marginTop: 5,
+    width: '60%',
+    alignSelf: 'center',
+    height: 1,
+    backgroundColor: 'black',
   },
 });
 

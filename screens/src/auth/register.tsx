@@ -20,11 +20,13 @@ import TextInputs from '../../common/text_field';
 import {RadioButton} from 'react-native-paper';
 import {RouteProp, useNavigation} from '@react-navigation/native';
 import DatePicker from '@react-native-community/datetimepicker';
-import {createNewUser} from '../../utils/firestore';
+import {createNewUser, createNotification} from '../../utils/firestore';
 import {StackNavigationProp} from '@react-navigation/stack';
 import auth from '@react-native-firebase/auth';
 import {useUser} from '../../provider/user_provider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ImagePickerComponent from '../dashboard/component/image_picker';
+import PushNotification from 'react-native-push-notification';
 
 type RegisterUserScreenRouteProp = RouteProp<RootParamList, 'Register'>;
 
@@ -37,6 +39,7 @@ const Register = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
   const [selectedDate, setSelectedDate] = useState('DOB');
+  const [profilePic, setprofilePic] = useState('');
 
   const handleDateChange = (event: any, selectedDate: any) => {
     setShowDatePicker(false);
@@ -46,64 +49,71 @@ const Register = () => {
     setDob(selectedDate);
   };
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+  const {login} = useUser();
 
   const handleSubmit = async () => {
-    if (rollNo && name && gender && address && selectedDate != 'DOB') {
-      setIsRegister(true);
-      const {login} = useUser();
-      const currentUser = auth().currentUser;
-      const userData = {
-        id: currentUser!.uid,
-        name: name,
-        contact: currentUser!.phoneNumber ?? '',
-        rollNo: rollNo,
-        address: address,
-        gender: gender,
-        dob: selectedDate,
-      };
-      AsyncStorage.setItem('user', JSON.stringify(userData));
-      login(userData);
+    try {
+      if (rollNo && name && gender && address && selectedDate != 'DOB') {
+        setIsRegister(true);
+        const currentUser = auth().currentUser;
+        const userData = {
+          id: currentUser!.uid,
+          name: name,
+          contact: currentUser!.phoneNumber ?? '',
+          rollNo: rollNo,
+          address: address,
+          gender: gender,
+          dob: selectedDate,
+          photoUrl: profilePic,
+        };
+        login(userData);
 
-      try {
-        await createNewUser(
-          currentUser!.uid,
-          currentUser!.phoneNumber ?? '',
-          name,
-          rollNo,
-          selectedDate,
-          gender,
-          address,
-        );
+        try {
+          await createNotification(
+            currentUser!.uid,
+            'Registration Successful',
+            `Congratulations ${name}. You have successfully registered.`,
+          );
+          await createNewUser(
+            currentUser!.uid,
+            currentUser!.phoneNumber ?? '',
+            name,
+            rollNo,
+            selectedDate,
+            gender,
+            address,
+            profilePic,
+          );
+          setIsRegister(false);
+          // PushNotification.localNotification({
+          //   title: 'Registration Successful',
+          //   message: `Congratulations ${name}. You have successfully registered.`,
+          //   // other options...
+          // });
+          navigation.navigate('Dashboard');
+        } catch (err) {
+          setIsRegister(false);
+          showToast('Please try agian later');
+          console.log(err);
+        }
+      } else {
         setIsRegister(false);
-        navigation.navigate('Dashboard');
-      } catch (err) {
-        setIsRegister(false);
-        showToast('Please try agian later');
-        console.log(err);
+        showToast('Please complete your profile');
       }
-    } else {
-      setIsRegister(false);
-      showToast('Please complete your profile');
+    } catch (err) {
+      console.log(err);
     }
   };
 
   return (
     <ScrollView style={{paddingHorizontal: 18, backgroundColor: 'white'}}>
-      <Text style={[styles.educationTxt, {marginTop: '6%'}]}>
+      <Text style={[commonStyles.educationTxt, {marginTop: '6%'}]}>
         Complete your profile
       </Text>
-      <View style={styles.underline}></View>
-      <Image
-        style={{
-          alignSelf: 'center',
-          height: height(15),
-          width: width(60),
-          marginTop: 30,
-          marginBottom: 10,
-          resizeMode: 'contain',
-        }}
-        source={require('../../../assets/nouser.png')}
-      />
+      <View style={commonStyles.underline}></View>
+      <ImagePickerComponent
+        selectedImage={profilePic}
+        setSelectedImage={setprofilePic}></ImagePickerComponent>
 
       <TextInputs
         label="Name"
@@ -116,6 +126,7 @@ const Register = () => {
         hintText="Roll Number"
         text={rollNo}
         setText={setRollNo}
+        keyboardType="number-pad"
       />
       <Text style={[commonStyles.lableText, {marginTop: '5%'}]}>
         Date of Birth
@@ -123,7 +134,13 @@ const Register = () => {
       <View
         style={[commonStyles.inputText, {justifyContent: 'center'}]}
         onTouchStart={ect => setShowDatePicker(true)}>
-        <Text style={{textAlign: 'left'}}>{selectedDate}</Text>
+        <Text
+          style={{
+            textAlign: 'left',
+            color: selectedDate === 'DOB' ? 'grey' : 'black',
+          }}>
+          {selectedDate}
+        </Text>
       </View>
       {showDatePicker && (
         <DatePicker
@@ -131,6 +148,8 @@ const Register = () => {
           value={DOB}
           mode={'date'}
           display="default"
+          accentColor={tealColor}
+          textColor="black"
           onChange={handleDateChange}
         />
       )}
@@ -160,15 +179,18 @@ const Register = () => {
   );
 };
 
-const GenderSelection = ({
+export const GenderSelection = ({
   gender,
   setGender,
+  setBool,
 }: {
   gender: string;
   setGender: (arg0: React.SetStateAction<string>) => void;
+  setBool?: (bool: boolean) => void;
 }) => {
   const handleGenderChange = (newGender: React.SetStateAction<string>) => {
     setGender(newGender);
+    setBool;
   };
 
   return (
@@ -180,7 +202,12 @@ const GenderSelection = ({
             value="male"
             color={tealColor}
             status={gender === 'male' ? 'checked' : 'unchecked'}
-            onPress={() => handleGenderChange('male')}
+            onPress={() => {
+              handleGenderChange('male');
+              if (setBool) {
+                setBool(true);
+              }
+            }}
           />
           <Text style={commonStyles.lableText}>Male</Text>
         </View>
@@ -189,7 +216,12 @@ const GenderSelection = ({
             value="female"
             color={tealColor}
             status={gender === 'female' ? 'checked' : 'unchecked'}
-            onPress={() => handleGenderChange('female')}
+            onPress={() => {
+              handleGenderChange('female');
+              if (setBool) {
+                setBool(true);
+              }
+            }}
           />
           <Text style={commonStyles.lableText}>Female</Text>
         </View>
@@ -198,7 +230,12 @@ const GenderSelection = ({
             value="other"
             color={tealColor}
             status={gender === 'other' ? 'checked' : 'unchecked'}
-            onPress={() => handleGenderChange('other')}
+            onPress={() => {
+              handleGenderChange('other');
+              if (setBool) {
+                setBool(true);
+              }
+            }}
           />
           <Text style={commonStyles.lableText}>Other</Text>
         </View>
@@ -208,32 +245,6 @@ const GenderSelection = ({
 };
 
 const styles = StyleSheet.create({
-  educationTxt: {
-    fontWeight: '800',
-    alignSelf: 'center',
-    letterSpacing: 1,
-    fontSize: 23,
-    color: tealColor,
-    marginTop: height(1.5),
-  },
-  underline: {
-    marginTop: 5,
-    width: '60%',
-    alignSelf: 'center',
-    height: 1,
-    backgroundColor: 'black',
-  },
-  circleContainer: {
-    elevation: 5,
-    marginTop: '7%',
-    alignSelf: 'center',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'grey',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   container: {
     marginTop: 20,
   },

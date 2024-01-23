@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {createContext, useContext, useState, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
@@ -9,6 +9,7 @@ interface User {
   gender: string;
   rollNo: string;
   dob: string;
+  photoUrl?: string;
 }
 
 interface UserContextProps {
@@ -23,22 +24,22 @@ interface UserProviderProps {
   children: React.ReactNode;
 }
 
-export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+export const UserProvider: React.FC<UserProviderProps> = ({children}) => {
   const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    const retrieveUserFromStorage = async () => {
-      try {
-        const userJSON = await AsyncStorage.getItem('user');
-        if (userJSON) {
-          const storedUser: User = JSON.parse(userJSON);
-          setUser(storedUser);
-        }
-      } catch (error) {
-        console.error('Error retrieving user from storage:', error);
+  const retrieveUserFromStorage = async () => {
+    try {
+      const userJSON = await AsyncStorage.getItem('user');
+      if (userJSON) {
+        const storedUser: User = JSON.parse(userJSON);
+        setUser(storedUser);
       }
-    };
+    } catch (error) {
+      console.error('Error retrieving user from storage:', error);
+    }
+  };
 
+  useEffect(() => {
     retrieveUserFromStorage();
   }, []);
 
@@ -46,6 +47,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       AsyncStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      console.log(`user set ${JSON.stringify(userData)}`);
     } catch (error) {
       console.error('Error saving user to storage:', error);
     }
@@ -66,7 +68,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     logout,
   };
 
-  return <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
+  );
 };
 
 export const useUser = (): UserContextProps => {

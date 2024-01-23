@@ -17,37 +17,7 @@ type NavigationProp = DrawerNavigationProp<DrawerParamList>;
 const HeaderComponent = () => {
   const navigation = useNavigation<NavigationProp>();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const {user, logout} = useUser();
-
-  useEffect(() => {
-    // const fetchUserData = async () => {
-    //   const user = auth().currentUser;
-    //   if (user) {
-    //     const userDoc = await firestore()
-    //       .collection('Users')
-    //       .doc(user.uid)
-    //       .get();
-    //     setUserData((userDoc.data() as UserData) || null);
-    //   }
-    // };
-    // const fetchUnreadNotifications = async () => {
-    //   const user = auth().currentUser;
-    //   if (user) {
-    //     const notifications = await firestore()
-    //       .collection('Notifications')
-    //       .where('userId', '==', user.uid)
-    //       .where('isRead', '==', false)
-    //       .get();
-    //     setUnreadNotifications(notifications.docs.length);
-    //   }
-    // };
-    // const intervalId = setInterval(() => {
-    //   fetchUnreadNotifications();
-    // }, 60000); // Check every minute
-    // fetchUserData();
-    // fetchUnreadNotifications();
-    // return () => clearInterval(intervalId); // Cleanup the interval on unmount
-  }, []);
+  const {user} = useUser();
 
   return (
     <View style={styles.header}>

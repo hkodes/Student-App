@@ -22,10 +22,8 @@ import {UserProvider, useUser} from './screens/provider/user_provider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Register from './screens/src/auth/register';
 import firestore from '@react-native-firebase/firestore';
-import {createDrawerNavigator} from '@react-navigation/drawer';
-import Profile from './screens/src/profile/profile';
-import Notifications from './screens/src/notification/notification';
 import Dashboard from './screens/src/dashboard/dashboard';
+import PushNotification from 'react-native-push-notification';
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
@@ -65,8 +63,23 @@ function App(): React.JSX.Element {
     }
   };
 
+  const initPushNotification = () => {
+    PushNotification.configure({
+      onRegister: function (token: any) {
+        console.log('TOKEN:', token);
+      },
+      onNotification: function (notification: any) {
+        console.log('NOTIFICATION:', notification);
+        // Handle the notification here
+      },
+      // ...
+      // Other configuration options go here
+    });
+  };
+
   useEffect(() => {
     retrieveUserFromStorage();
+    initPushNotification();
   }, []);
 
   if (loading) {
