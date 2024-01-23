@@ -31,6 +31,8 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import {GenderSelection} from '../auth/register';
 import {createNotification} from '../../utils/firestore';
+import PushNotification from 'react-native-push-notification';
+import {sendLocalNotification} from '../../utils/notification';
 
 const Profile = () => {
   const [profilePic, setprofilePic] = useState('');
@@ -55,6 +57,7 @@ const Profile = () => {
   };
   const handleSubmit = async () => {
     try {
+      sendLocalNotification('Profile updated', 'Profile updated successfully');
       setIsRegister(true);
       const currentUser = auth().currentUser;
       createNotification(

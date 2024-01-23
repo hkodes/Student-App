@@ -31,6 +31,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useUser} from '../../provider/user_provider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firestore from '@react-native-firebase/firestore';
+import {updateFcm} from '../../utils/firestore';
 
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState('+91');
@@ -58,9 +59,8 @@ const Login = () => {
       };
       AsyncStorage.setItem('user', JSON.stringify(userData));
       login(userData);
-
+      updateFcm(uid);
       setisVerifying(false);
-      console.log('exists');
       navigation.navigate('Dashboard');
     } else {
       setisVerifying(false);

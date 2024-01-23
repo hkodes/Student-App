@@ -27,6 +27,7 @@ import {useUser} from '../../provider/user_provider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImagePickerComponent from '../dashboard/component/image_picker';
 import PushNotification from 'react-native-push-notification';
+import {sendLocalNotification} from '../../utils/notification';
 
 type RegisterUserScreenRouteProp = RouteProp<RootParamList, 'Register'>;
 
@@ -85,11 +86,10 @@ const Register = () => {
             profilePic,
           );
           setIsRegister(false);
-          // PushNotification.localNotification({
-          //   title: 'Registration Successful',
-          //   message: `Congratulations ${name}. You have successfully registered.`,
-          //   // other options...
-          // });
+          sendLocalNotification(
+            'Registration Successful',
+            `Congratulations ${name}. You have successfully registered.`,
+          );
           navigation.navigate('Dashboard');
         } catch (err) {
           setIsRegister(false);

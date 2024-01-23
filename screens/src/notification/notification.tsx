@@ -118,7 +118,7 @@ const Notifications = () => {
                 alignSelf: 'center',
                 marginTop: '10%',
                 fontSize: 19,
-                color: 'black',
+                color: 'grey',
               }}>
               No Notifications found
             </Text>

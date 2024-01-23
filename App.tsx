@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StyleSheet,
+  View,
   useColorScheme,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -24,6 +25,9 @@ import Register from './screens/src/auth/register';
 import firestore from '@react-native-firebase/firestore';
 import Dashboard from './screens/src/dashboard/dashboard';
 import PushNotification from 'react-native-push-notification';
+import messaging from '@react-native-firebase/messaging';
+import {createNotification} from './screens/utils/firestore';
+import {sendLocalNotification} from './screens/utils/notification';
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
@@ -34,6 +38,30 @@ function App(): React.JSX.Element {
   const [initialRoute, setInitialRoute] = useState<string>('Login');
   const Stack = createStackNavigator();
   const [loading, setLoading] = useState(true);
+
+  messaging().setBackgroundMessageHandler(async remoteMessage => {
+    if (user) {
+      createNotification(
+        user?.id,
+        remoteMessage.notification!['title'] ?? 'N/A',
+        remoteMessage.notification!['body'] ?? 'N/A',
+      );
+    }
+  });
+
+  messaging().onMessage(async remoteMessage => {
+    if (user) {
+      sendLocalNotification(
+        remoteMessage.notification!['title'] ?? 'N/A',
+        remoteMessage.notification!['body'] ?? 'N/A',
+      );
+      createNotification(
+        user?.id,
+        remoteMessage.notification!['title'] ?? 'N/A',
+        remoteMessage.notification!['body'] ?? 'N/A',
+      );
+    }
+  });
 
   const retrieveUserFromStorage = async () => {
     console.log({initialRoute});
@@ -65,16 +93,25 @@ function App(): React.JSX.Element {
 
   const initPushNotification = () => {
     PushNotification.configure({
-      onRegister: function (token: any) {
-        console.log('TOKEN:', token);
+      onRegister: function (token: any) {},
+      onNotification: function (notification: any) {},
+
+      permissions: {
+        alert: true,
+        badge: true,
+        sound: true,
       },
-      onNotification: function (notification: any) {
-        console.log('NOTIFICATION:', notification);
-        // Handle the notification here
-      },
-      // ...
-      // Other configuration options go here
+      popInitialNotification: true,
+      requestPermissions: true,
     });
+    PushNotification.createChannel(
+      {
+        channelId: '1',
+        channelName: 'My channel',
+        vibrate: true,
+      },
+      created => {},
+    );
   };
 
   useEffect(() => {
@@ -84,11 +121,19 @@ function App(): React.JSX.Element {
 
   if (loading) {
     return (
-      <ActivityIndicator
-        style={{marginTop: 20, flex: 1, alignSelf: 'center'}}
-        size="large"
-        color={tealColor}
-      />
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          backgroundColor: 'white',
+          alignSelf: 'center',
+        }}>
+        <ActivityIndicator
+          style={{marginTop: 20, flex: 1, alignSelf: 'center'}}
+          size="large"
+          color={tealColor}
+        />
+      </View>
     );
   }
 

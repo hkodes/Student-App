@@ -61,3 +61,11 @@ export const createNewUser = async (
     photoUrl: photoUrl,
   });
 };
+
+export const updateFcm = async (uid: string) => {
+  const fcmToken = await messaging().getToken();
+
+  await firestore().collection('test_users').doc(uid).update({
+    fcmToken: fcmToken,
+  });
+};
