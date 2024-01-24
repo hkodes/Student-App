@@ -1,6 +1,11 @@
 export interface NotificationItem {
   id: string;
   message: string;
-  timestamp: Date;
+  timestamp: IFirestoreTimestamp;
   title: string;
+}
+
+export interface IFirestoreTimestamp {
+  seconds: number;
+  nanoseconds: number;
 }

@@ -107,7 +107,7 @@ const Register = () => {
 
   return (
     <ScrollView style={{paddingHorizontal: 18, backgroundColor: 'white'}}>
-      <Text style={[commonStyles.educationTxt, {marginTop: '6%'}]}>
+      <Text style={[commonStyles.educationTxt, {marginTop: '7%'}]}>
         Complete your profile
       </Text>
       <View style={commonStyles.underline}></View>
@@ -145,6 +145,7 @@ const Register = () => {
       {showDatePicker && (
         <DatePicker
           testID="dateTimePicker"
+          maximumDate={new Date()}
           value={DOB}
           mode={'date'}
           display="default"
@@ -169,7 +170,10 @@ const Register = () => {
       ) : (
         <TouchableOpacity
           onPress={handleSubmit}
-          style={[commonStyles.continueBtn, {marginTop: '10%'}]}>
+          style={[
+            commonStyles.continueBtn,
+            {marginTop: '10%', marginBottom: '10%'},
+          ]}>
           <View>
             <Text style={{color: 'white', fontSize: 17}}>Continue</Text>
           </View>

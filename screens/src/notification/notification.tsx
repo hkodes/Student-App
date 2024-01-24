@@ -46,6 +46,7 @@ const Notifications = () => {
       );
       const querySnapshot = notificationsCollection
         .where('userId', '==', user?.id)
+        .orderBy('timestamp', 'desc')
         .get();
 
       const notificationsData = (await querySnapshot!).docs.map(doc => ({
@@ -58,6 +59,7 @@ const Notifications = () => {
     } catch (err) {
       setisLoading(false);
       showToast('Something went wrong');
+      console.log(err);
     }
   };
 

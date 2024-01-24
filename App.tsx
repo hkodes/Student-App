@@ -28,6 +28,7 @@ import PushNotification from 'react-native-push-notification';
 import messaging from '@react-native-firebase/messaging';
 import {createNotification} from './screens/utils/firestore';
 import {sendLocalNotification} from './screens/utils/notification';
+import auth from '@react-native-firebase/auth';
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
@@ -46,6 +47,7 @@ function App(): React.JSX.Element {
         remoteMessage.notification!['title'] ?? 'N/A',
         remoteMessage.notification!['body'] ?? 'N/A',
       );
+      console.log('creates onBackground');
     }
   });
 
@@ -60,25 +62,36 @@ function App(): React.JSX.Element {
         remoteMessage.notification!['title'] ?? 'N/A',
         remoteMessage.notification!['body'] ?? 'N/A',
       );
+      console.log(remoteMessage);
     }
   });
 
   const retrieveUserFromStorage = async () => {
-    console.log({initialRoute});
-
     try {
-      const userJson = await AsyncStorage.getItem('user');
-      if (userJson) {
-        const storedUser = JSON.parse(userJson);
-        login(storedUser);
+      if (auth().currentUser) {
         const userDoc = await firestore()
           .collection('test_users')
-          .doc(storedUser.id)
-          .get({source: 'server'});
+          .doc(auth().currentUser?.uid)
+          .get();
         if (userDoc.exists) {
-          setInitialRoute('Dashboard');
+          const userJson = await AsyncStorage.getItem('user');
+          if (userJson) {
+            const storedUser = JSON.parse(userJson);
+            login(storedUser);
+            const userDoc = await firestore()
+              .collection('test_users')
+              .doc(storedUser.id)
+              .get({source: 'server'});
+            if (userDoc.exists) {
+              setInitialRoute('Dashboard');
+            } else {
+              setInitialRoute('Register');
+            }
+          } else {
+            setInitialRoute('Login');
+          }
         } else {
-          setInitialRoute('Register');
+          setInitialRoute('Login');
         }
       } else {
         setInitialRoute('Login');
@@ -126,10 +139,15 @@ function App(): React.JSX.Element {
           flex: 1,
           alignItems: 'center',
           backgroundColor: 'white',
-          alignSelf: 'center',
+          alignContent: 'center',
         }}>
         <ActivityIndicator
-          style={{marginTop: 20, flex: 1, alignSelf: 'center'}}
+          style={{
+            marginTop: 20,
+            backgroundColor: 'white',
+            flex: 1,
+            alignSelf: 'center',
+          }}
           size="large"
           color={tealColor}
         />

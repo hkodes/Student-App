@@ -14,8 +14,13 @@ const NotificationCard = ({
   message,
   onClose,
 }: NotificationCardProps) => {
-  const formattedTimestamp = moment(timestamp).format('hh:mm A | DD/MM');
+  const {seconds, nanoseconds} = timestamp;
 
+  const milliseconds = seconds * 1000 + nanoseconds / 1e6;
+  const date = moment(milliseconds).toDate();
+
+  // Format the date
+  const formattedTimestamp = moment(date).format('hh:mm A | DD/MM');
   return (
     <View>
       <Text style={styles.timestamp}>{formattedTimestamp}</Text>
