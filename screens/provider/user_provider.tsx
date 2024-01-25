@@ -1,17 +1,6 @@
 import React, {createContext, useContext, useState, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface User {
-  id: string;
-  name: string;
-  contact: string;
-  address: string;
-  gender: string;
-  rollNo: string;
-  dob: string;
-  photoUrl?: string;
-}
-
 interface UserContextProps {
   user: User | null;
   login: (userData: User) => void;

@@ -33,6 +33,7 @@ import {GenderSelection} from '../auth/register';
 import {createNotification} from '../../utils/firestore';
 import PushNotification from 'react-native-push-notification';
 import {sendLocalNotification} from '../../utils/notification';
+import messaging from '@react-native-firebase/messaging';
 
 const Profile = () => {
   const [profilePic, setprofilePic] = useState('');
@@ -66,16 +67,17 @@ const Profile = () => {
         'Profile updated successfully',
       );
 
-      console.log(`changed name ${name}`);
+      const fcmToken = await messaging().getToken();
       const userData = {
         id: currentUser!.uid,
         name: name,
-        contact: currentUser!.phoneNumber ?? '',
-        rollNo: rollNo,
+        phoneNumber: currentUser!.phoneNumber ?? '',
+        roll_number: rollNo,
         address: address,
         gender: gender,
         dob: selectedDate,
         photoUrl: profilePic,
+        fcmToken: fcmToken,
       };
       await login(userData);
 
@@ -108,7 +110,7 @@ const Profile = () => {
       if (user) {
         setprofilePic(user?.photoUrl ?? '');
         setName(user?.name ?? '');
-        setRollNo(user.rollNo ?? '');
+        setRollNo(user.roll_number ?? '');
         setAddress(user?.address ?? '');
         setSelectedDate(user?.dob ?? '');
         setGender(user?.gender ?? 'Male');

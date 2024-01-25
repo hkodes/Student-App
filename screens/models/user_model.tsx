@@ -1,13 +1,12 @@
-class User {
-    constructor(id: string, name: string, email: string) {
-      this.id = id;
-      this.name = name;
-      this.email = email;
-    }
-  
-    id: string;
-    name: string;
-    email: string;
-  }
-  
-  export default User;
+interface User {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  address: string;
+  gender: string;
+  roll_number: string;
+  dob: string;
+  fcmToken: string;
+
+  photoUrl?: string;
+}

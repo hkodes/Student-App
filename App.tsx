@@ -29,6 +29,7 @@ import messaging from '@react-native-firebase/messaging';
 import {createNotification} from './screens/utils/firestore';
 import {sendLocalNotification} from './screens/utils/notification';
 import auth from '@react-native-firebase/auth';
+import AdminHome from './screens/src/admin/admin_home';
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
@@ -40,58 +41,64 @@ function App(): React.JSX.Element {
   const Stack = createStackNavigator();
   const [loading, setLoading] = useState(true);
 
-  messaging().setBackgroundMessageHandler(async remoteMessage => {
-    if (user) {
-      createNotification(
-        user?.id,
-        remoteMessage.notification!['title'] ?? 'N/A',
-        remoteMessage.notification!['body'] ?? 'N/A',
-      );
-      console.log('creates onBackground');
-    }
-  });
+  const initMsgListener = () => {
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
+      if (user) {
+        createNotification(
+          user?.id,
+          remoteMessage.notification!['title'] ?? 'N/A',
+          remoteMessage.notification!['body'] ?? 'N/A',
+        );
+        console.log('creates onBackground');
+      }
+    });
 
-  messaging().onMessage(async remoteMessage => {
-    if (user) {
-      sendLocalNotification(
-        remoteMessage.notification!['title'] ?? 'N/A',
-        remoteMessage.notification!['body'] ?? 'N/A',
-      );
-      createNotification(
-        user?.id,
-        remoteMessage.notification!['title'] ?? 'N/A',
-        remoteMessage.notification!['body'] ?? 'N/A',
-      );
-      console.log(remoteMessage);
-    }
-  });
+    messaging().onMessage(async remoteMessage => {
+      if (user) {
+        sendLocalNotification(
+          remoteMessage.notification!['title'] ?? 'N/A',
+          remoteMessage.notification!['body'] ?? 'N/A',
+        );
+        createNotification(
+          user?.id,
+          remoteMessage.notification!['title'] ?? 'N/A',
+          remoteMessage.notification!['body'] ?? 'N/A',
+        );
+        console.log(remoteMessage);
+      }
+    });
+  };
 
   const retrieveUserFromStorage = async () => {
     try {
       if (auth().currentUser) {
-        const userDoc = await firestore()
-          .collection('test_users')
-          .doc(auth().currentUser?.uid)
-          .get();
-        if (userDoc.exists) {
-          const userJson = await AsyncStorage.getItem('user');
-          if (userJson) {
-            const storedUser = JSON.parse(userJson);
-            login(storedUser);
-            const userDoc = await firestore()
-              .collection('test_users')
-              .doc(storedUser.id)
-              .get({source: 'server'});
-            if (userDoc.exists) {
-              setInitialRoute('Dashboard');
+        if (auth().currentUser?.phoneNumber == '+911111111111') {
+          setInitialRoute('Admin');
+        } else {
+          const userDoc = await firestore()
+            .collection('test_users')
+            .doc(auth().currentUser?.uid)
+            .get();
+          if (userDoc.exists) {
+            const userJson = await AsyncStorage.getItem('user');
+            if (userJson) {
+              const storedUser = JSON.parse(userJson);
+              login(storedUser);
+              const userDoc = await firestore()
+                .collection('test_users')
+                .doc(storedUser.id)
+                .get({source: 'server'});
+              if (userDoc.exists) {
+                setInitialRoute('Dashboard');
+              } else {
+                setInitialRoute('Register');
+              }
             } else {
-              setInitialRoute('Register');
+              setInitialRoute('Login');
             }
           } else {
             setInitialRoute('Login');
           }
-        } else {
-          setInitialRoute('Login');
         }
       } else {
         setInitialRoute('Login');
@@ -130,6 +137,7 @@ function App(): React.JSX.Element {
   useEffect(() => {
     retrieveUserFromStorage();
     initPushNotification();
+    initMsgListener();
   }, []);
 
   if (loading) {
@@ -163,6 +171,7 @@ function App(): React.JSX.Element {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Dashboard" component={Dashboard} />
+        <Stack.Screen name="Admin" component={AdminHome} />
       </Stack.Navigator>
     </NavigationContainer>
   );

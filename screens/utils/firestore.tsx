@@ -68,4 +68,5 @@ export const updateFcm = async (uid: string) => {
   await firestore().collection('test_users').doc(uid).update({
     fcmToken: fcmToken,
   });
+  console.log('token updated');
 };
