@@ -5,23 +5,59 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
-import {useNavigation} from '@react-navigation/native';
+import React, {useEffect} from 'react';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootParamList, height, width} from '../../constant';
 import {useUser} from '../../provider/user_provider';
 import HeaderComponent from './component/header';
 import FooterComponent from './component/footer';
 import FieldContainer from './component/field_container';
+import messaging from '@react-native-firebase/messaging';
+import {createNotification} from '../../utils/firestore';
+import {sendLocalNotification} from '../../utils/notification';
 
 const Home = () => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const {user, logout} = useUser();
 
-  const handleLogOut = () => {
-    logout();
-    navigation.navigate('Login');
+  const initMsgListener = () => {
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
+      console.log('bg msg');
+
+      if (user) {
+        createNotification(
+          user?.id,
+          remoteMessage.notification!['title'] ?? 'N/A',
+          remoteMessage.notification!['body'] ?? 'N/A',
+        );
+        console.log('creates onBackground');
+      }
+    });
+
+    messaging().onMessage(async remoteMessage => {
+      console.log(`In app msg - ${user}`);  
+      if (user) {
+        sendLocalNotification(
+          remoteMessage.notification!['title'] ?? 'N/A',
+          remoteMessage.notification!['body'] ?? 'N/A',
+        );
+        createNotification(
+          user?.id,
+          remoteMessage.notification!['title'] ?? 'N/A',
+          remoteMessage.notification!['body'] ?? 'N/A',
+        );
+        console.log(remoteMessage);
+      }
+    });
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      initMsgListener();
+      return () => {};
+    }, []),
+  );
 
   return (
     <View style={styles.container}>

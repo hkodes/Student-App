@@ -38,9 +38,15 @@ target 'sampleapp' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+  use_modular_headers!
 
   target 'sampleappTests' do
-    inherit! :complete
+    # inherit! :complete
+    pod 'FirebaseCore', :modular_headers => true
+    pod 'GoogleUtilities', :modular_headers => true
+    pod 'FirebaseCoreExtension', :modular_headers => true
+    pod 'FirebaseFirestore', :modular_headers => true
+    pod 'FirebaseStorage', :modular_headers => true
     # Pods for testing
   end
 

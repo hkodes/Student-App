@@ -25,9 +25,7 @@ import Register from './screens/src/auth/register';
 import firestore from '@react-native-firebase/firestore';
 import Dashboard from './screens/src/dashboard/dashboard';
 import PushNotification from 'react-native-push-notification';
-import messaging from '@react-native-firebase/messaging';
-import {createNotification} from './screens/utils/firestore';
-import {sendLocalNotification} from './screens/utils/notification';
+
 import auth from '@react-native-firebase/auth';
 import AdminHome from './screens/src/admin/admin_home';
 
@@ -40,34 +38,6 @@ function App(): React.JSX.Element {
   const [initialRoute, setInitialRoute] = useState<string>('Login');
   const Stack = createStackNavigator();
   const [loading, setLoading] = useState(true);
-
-  const initMsgListener = () => {
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
-      if (user) {
-        createNotification(
-          user?.id,
-          remoteMessage.notification!['title'] ?? 'N/A',
-          remoteMessage.notification!['body'] ?? 'N/A',
-        );
-        console.log('creates onBackground');
-      }
-    });
-
-    messaging().onMessage(async remoteMessage => {
-      if (user) {
-        sendLocalNotification(
-          remoteMessage.notification!['title'] ?? 'N/A',
-          remoteMessage.notification!['body'] ?? 'N/A',
-        );
-        createNotification(
-          user?.id,
-          remoteMessage.notification!['title'] ?? 'N/A',
-          remoteMessage.notification!['body'] ?? 'N/A',
-        );
-        console.log(remoteMessage);
-      }
-    });
-  };
 
   const retrieveUserFromStorage = async () => {
     try {
@@ -128,6 +98,7 @@ function App(): React.JSX.Element {
       {
         channelId: '1',
         channelName: 'My channel',
+        importance: 1,
         vibrate: true,
       },
       created => {},
@@ -137,7 +108,6 @@ function App(): React.JSX.Element {
   useEffect(() => {
     retrieveUserFromStorage();
     initPushNotification();
-    initMsgListener();
   }, []);
 
   if (loading) {

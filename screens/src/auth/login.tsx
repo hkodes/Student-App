@@ -31,8 +31,9 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useUser} from '../../provider/user_provider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firestore from '@react-native-firebase/firestore';
-import {updateFcm} from '../../utils/firestore';
+import {createNotification, updateFcm} from '../../utils/firestore';
 import messaging from '@react-native-firebase/messaging';
+import {sendLocalNotification} from '../../utils/notification';
 
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState('+91');
